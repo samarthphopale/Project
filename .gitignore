@@ -4,7 +4,3 @@
 .terraform.lock.hcl
 venv/
 *.log
-.DS_Store
-**/.DS_Store
-.DS_Store
-java-backend/.DS_Store
