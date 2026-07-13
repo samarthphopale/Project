@@ -11,6 +11,18 @@ spring:
     service:
       url: ${AI_SERVICE_URL:http://python-ai-service:8000}
       chatEndpoint: ${AI_SERVICE_CHAT_ENDPOINT:/eximAI/chat}
+    
+    ollama:
+      base-url: http://ollama:11434
+      embedding:
+        options:
+          model: nomic-embed-text # Lightweight, highly performant embedding model
+    vectorstore:
+      chroma:
+        initialize-schema: true
+        client:
+          host: http://chromadb
+          port: 8000
   
   datasource:
     url: jdbc:postgresql://postgres:5432/exim

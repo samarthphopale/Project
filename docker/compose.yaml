@@ -32,7 +32,7 @@ services:
     environment:
       - OLLAMA_HOST=http://ollama:11434
     entrypoint: /bin/sh
-    command: "-c 'sleep 10 && ollama pull mistral'"
+    command: "-c 'sleep 10 && ollama pull mistral && ollama pull nomic-embed-text'"
     depends_on:
       - ollama
 
@@ -64,6 +64,17 @@ services:
       postgres:
         condition: service_healthy # Ensures Java waits until the database is fully ready
 
+  chromadb:
+    image: chromadb/chroma:0.5.15
+    container_name: chromadb
+    ports:
+      - "8085:8000" # Exposes Chroma API
+    volumes:
+      - chroma_data:/chroma/chroma
+    restart: unless-stopped
+
+
 volumes:
   ollama_storage:
-  postgres_data: # Persistent storage so you don't lose database tables when restarting
+  postgres_data:
+  chroma_data: # Persistent storage for Chroma database 
