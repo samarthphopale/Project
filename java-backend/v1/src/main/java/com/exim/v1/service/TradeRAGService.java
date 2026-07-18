@@ -69,7 +69,9 @@ public class TradeRAGService {
         List<Document> similarDocuments = vectorStore.similaritySearch(userPrompt);
 
         String extractedContext = similarDocuments.stream()
+
                 .map(Document::getContent)
+
                 .collect(Collectors.joining("\n"));
 
         // Build an enriched, reinforced prompt payload structure
