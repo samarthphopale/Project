@@ -1,0 +1,75 @@
+services:
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+    ports:
+      - "${POSTGRES_PORT}:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+
+  python-ai-service:
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile.python
+
+    ports:
+      - "${AI_SERVICE_PORT}:8000"
+
+    environment:
+      OLLAMA_URL: ${OLLAMA_URL}
+      CHROMA_HOST: ${CHROMA_HOST}
+      CHROMA_PORT: ${CHROMA_PORT}
+
+
+  java-backend:
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile.java
+
+    ports:
+      - "8080:8080"
+
+    environment:
+      OLLAMA_URL: ${OLLAMA_URL}
+
+      AI_SERVICE_URL: ${AI_SERVICE_URL}
+      AI_SERVICE_CHAT_ENDPOINT: ${AI_SERVICE_CHAT_ENDPOINT}
+
+      POSTGRES_URL: ${POSTGRES_URL}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+      CHROMA_HOST: ${CHROMA_HOST}
+      CHROMA_PORT: ${CHROMA_PORT}
+
+    depends_on:
+      - python-ai-service
+
+
+  chromadb:
+    image: chromadb/chroma:0.5.15
+
+    ports:
+      - "8085:${CHROMA_PORT}"
+
+    volumes:
+      - chroma_data:/chroma/chroma
+
+
+volumes:
+  postgres_data:
+  chroma_data:

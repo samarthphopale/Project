@@ -4,77 +4,120 @@ services:
     image: postgres:15-alpine
     container_name: postgres
     environment:
-      - POSTGRES_DB=exim
-      - POSTGRES_USER=admin
-      - POSTGRES_PASSWORD=admin
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT}:5432"
+
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d exim"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 5
 
+
   ollama:
     image: ollama/ollama:latest
     container_name: ollama
+
     volumes:
       - ollama_storage:/root/.ollama
+
     restart: unless-stopped
+
 
   ollama-pull-models:
     image: ollama/ollama:latest
     container_name: ollama-pull-models
+
     volumes:
       - ollama_storage:/root/.ollama
+
     environment:
-      - OLLAMA_HOST=http://ollama:11434
+      OLLAMA_HOST: http://ollama:11434
+
     entrypoint: /bin/sh
-    command: "-c 'sleep 10 && ollama pull mistral && ollama pull nomic-embed-text'"
+
+    command: >
+      -c "
+      sleep 10 &&
+      ollama pull mistral &&
+      ollama pull nomic-embed-text
+      "
+
     depends_on:
       - ollama
+
 
   python-ai-service:
     build:
       dockerfile: docker/Dockerfile.python
       context: ../
+
     ports:
       - "8000:8000"
+
     environment:
-      - OLLAMA_URL=http://ollama:11434/api/generate
+      OLLAMA_URL: ${OLLAMA_URL}
+
     depends_on:
       ollama-pull-models:
         condition: service_completed_successfully
+
 
   java-backend:
     build:
       dockerfile: docker/Dockerfile.java
       context: ../
+
     ports:
       - "8080:8080"
+
     environment:
-      - OLLAMA_URL=http://ollama:11434/api/generate
-      - AI_SERVICE_URL=http://python-ai-service:8000
-      - AI_SERVICE_CHAT_ENDPOINT=/eximAI/chat
+      OLLAMA_URL: ${OLLAMA_URL}
+
+      AI_SERVICE_URL: ${AI_SERVICE_URL}
+      AI_SERVICE_CHAT_ENDPOINT: ${AI_SERVICE_CHAT_ENDPOINT}
+
+      POSTGRES_URL: ${POSTGRES_URL}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+      CHROMA_HOST: ${CHROMA_HOST}
+      CHROMA_PORT: ${CHROMA_PORT}
+
     depends_on:
       python-ai-service:
         condition: service_started
+
       postgres:
-        condition: service_healthy # Ensures Java waits until the database is fully ready
+        condition: service_healthy
+
 
   chromadb:
     image: chromadb/chroma:0.5.15
+
     container_name: chromadb
+
     ports:
-      - "8085:8000" # Exposes Chroma API
+      - "8085:${CHROMA_PORT}"
+
     volumes:
       - chroma_data:/chroma/chroma
+
     restart: unless-stopped
 
 
+
 volumes:
+
   ollama_storage:
+
   postgres_data:
-  chroma_data: # Persistent storage for Chroma database 
+
+  chroma_data:

@@ -6,28 +6,28 @@ spring:
   application:
     name: v1
 
-  # FIX: Adjusted to exactly 2 spaces per nested property
   ai:
     service:
       url: ${AI_SERVICE_URL:http://python-ai-service:8000}
       chatEndpoint: ${AI_SERVICE_CHAT_ENDPOINT:/eximAI/chat}
-    
+
     ollama:
-      base-url: http://ollama:11434
+      base-url: ${OLLAMA_URL:http://localhost:11434}
       embedding:
         options:
-          model: nomic-embed-text # Lightweight, highly performant embedding model
+          model: ${OLLAMA_EMBEDDING_MODEL:nomic-embed-text}
+
     vectorstore:
       chroma:
         initialize-schema: true
         client:
-          host: http://chromadb
-          port: 8000
-  
+          host: ${CHROMA_HOST:http://localhost}
+          port: ${CHROMA_PORT:8000}
+
   datasource:
-    url: jdbc:postgresql://postgres:5432/exim
-    username: admin
-    password: admin
+    url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/exim}
+    username: ${POSTGRES_USER:admin}
+    password: ${POSTGRES_PASSWORD:admin}
 
   jpa:
     hibernate:
