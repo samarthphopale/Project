@@ -1,11 +1,8 @@
 # ==========================================
 # STAGE 1: Build the Java source code
 # ==========================================
-FROM eclipse-temurin:26-jdk AS builder
+FROM maven:3.9.6-eclipse-temurin-21 AS builder
 WORKDIR /build
-
-# Install Maven in the builder image (Debian-based temurin image)
-RUN apt-get update && apt-get install -y maven && rm -rf /var/lib/apt/lists/*
 
 # Copy your maven configuration file
 COPY java-backend/v1/pom.xml .
@@ -22,7 +19,7 @@ RUN mvn clean package -DskipTests
 # ==========================================
 # STAGE 2: Run the application
 # ==========================================
-FROM eclipse-temurin:26-jre
+FROM eclipse-temurin:21-jre
 WORKDIR /app
 
 # Copy the freshly compiled JAR file directly from Stage 1
